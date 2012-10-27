@@ -1,0 +1,19 @@
+#!/bin/sh
+# /etc/init.d/power-monitor
+
+case "$1" in
+	start)
+		echo "Starting power monitor..."
+		python /root/power/monitor.py &
+		;;
+	stop)
+		echo "Stopping power monitor..."
+		killall monitor.py
+		;;
+	*)
+		echo "Usage: /etc/init.d/power-monitor (start|stop)"
+		exit 1
+		;;
+esac
+
+exit 0
