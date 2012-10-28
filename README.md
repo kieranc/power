@@ -7,7 +7,7 @@ Simple electricity meter monitoring for Raspberry Pi.
 * Raspberry Pi
 * Photoresistor (Light Dependent Resistor)
 * 10k Ohm Resistor
-* .1uF Capacitor
+* 1uF Capacitor
 * Relevant Cables/Connectors
 * Modern Electricity Meter
 
@@ -15,10 +15,10 @@ Modern electricity meters have a blinking/flashing LED, often with small text th
 
 You will need to wire up a simple circuit, as shown in the diagram, more details about this circuit can be found on the [Adafruit](http://learn.adafruit.com/basic-resistor-sensor-reading-on-raspberry-pi/overview) website; it makes for a great educational set up as well.
 
-**Note:** I have had no problem running this circuit over 10 metres of cheap but reliable 4-core telephone cable. Your mileage may vary, though I am aware of someone else having experimented with 30 metre cat5 cable without encountering any problems.
+**Note:** I have had no problem running this circuit over 10 metres of cheap but reliable 4-core telephone cable. Your mileage may vary, though I am aware of someone else having experimented with 30 metres of cat5 cable without encountering any problems.
 
 # Software Installation
-On your Raspberry Pi, you will need to ensure you have certain Python related files installed. To make sure, type the following commands...
+On your Raspberry Pi, you will need to ensure that you have certain Python related files installed. To make sure, type the following commands...
 ```bash
 sudo apt-get install sqlite3 libsqlite3-dev
 sudo apt-get install python-dev python-pip
@@ -37,7 +37,7 @@ sudo cp power-monitor /etc/init.d/
 sudo chmod a+x /etc/init.d/power-monitor
 sudo update-rc.d power-monitor defaults
 ```
-**Note:** Be sure to check the power-monitor file to make sure that the path to the Python application matches with the path on your system.
+**Note:** Be sure to check the power-monitor file to make sure that the path to the Python application, power.py, matches with the path on your system. For example, /home/pi/power/power.py
 
 Next, move your database file to a more suitable location...
 ```bash
@@ -45,9 +45,9 @@ sudo mkdir /var/db
 sudo cp power.db /var/db/
 ```
 
-A final sanity check; on my set up, 90000 seemed a reasonable number to use for pulse checking. You may need to modify the power.py file to change this number for your system. It is all dependent on how well you black-taped the photoresistor, how much cable you are using, etc. *Hint: use a **print** command in the Python code to check the values.*
+A final sanity check; on my set up, 90000 seemed a reasonable number to use for pulse checking. You may need to modify the power.py file to change this number for your system. It is all dependent on how well you black-taped the photoresistor, how much cable you are using, etc. *Hint: add a __print__ command to the Python code near __while True:__ to check the values.*
 
-Once you have your number, you can start the data logging process...
+Once you have your number in place, you can start the data logging process...
 ```bash
 sudo /etc/init.d/power-monitor start
 ```
@@ -65,6 +65,8 @@ sudo service lighttpd force-reload
 ```
 
 Now you can copy the PHP file to /var/www, e.g. _cp -r www/* /var/www/_
+
+Finally, edit the *config.php* file located in */var/www* and set the ImpKwH value to match your system (the default is 800).
 
 To view your electricity consumption, open a web browser on your desktop computer and navigate to your Raspberry Pi, for example by typing: _http://192.168.0.3/_
 
