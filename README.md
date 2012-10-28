@@ -66,7 +66,7 @@ sudo service lighttpd force-reload
 
 Now you can copy the PHP file to /var/www, e.g. _cp -r www/* /var/www/_
 
-Finally, edit the *config.php* file located in */var/www* and set the ImpKwH value to match your system (the default is 800).
+Finally, edit the *config.php* file located in */var/www* and set the IMPKWH value to match your system (the default is 800).
 
 To view your electricity consumption, open a web browser on your desktop computer and navigate to your Raspberry Pi, for example by typing: _http://192.168.0.3/_
 
