@@ -24,7 +24,9 @@
 			$_hours[$i]=$_group;
 			$_time=3600/count($_group);
 			$_consumption[$i]=round((3600/($_time*IMPKWH)),4);
-		}
+                } else {
+                        $_consumption[$i]=0;
+                }
 	}
 
 	$js="var consumption=[";
