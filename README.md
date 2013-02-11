@@ -1,74 +1,81 @@
 power
 =====
 
-Simple electricity meter monitoring for Raspberry Pi.
+Power meter monitoring directly on the Pi using Open Energy Monitor and an LDR
+I've forked this from yfory's power meter: https://github.com/yfory/power
+His uses a capacitor/resistor for the LDR, I use a transistor based circuit instead to provide a digital on/off signal
+His version also writes values to an SQLite database and graphs them itself, this does not, if these features are useful to you, I suggest you check his code.
 
 # Requirements
 * Raspberry Pi
 * Photoresistor (Light Dependent Resistor)
-* 10k Ohm Resistor
-* 1uF Capacitor
+* 10k Ohm resistor
+* 1k resistors
+* NPN Transistor - I used a BC547
 * Relevant Cables/Connectors
 * Modern Electricity Meter
 
-Modern electricity meters have a blinking/flashing LED, often with small text that reads 800 Imp/kWh. The two important things here are that you have a blinking LED, and that you know the number e.g. 800. Without these, this project will not work for you.
+Modern electricity meters have a blinking/flashing LED, often with small text that reads 1000 Imp/kWh. The two important things here are that you have a blinking LED, and that you know the number e.g. 800. Without these, this project will not work for you.
+Yfory's original had a simple variable to change for the Imp/kWh value, mine, not so much.
+I multiply the pulsecount per minute by 60 to get a value in watts which works for 1000 Imp/kWh but will need adjusting for others.
+I think it should be 72 for 800 Imp/kWh and 30 for 2000 Imp/kWh
 
-You will need to wire up a simple circuit, as shown in the diagram, more details about this circuit can be found on the [Adafruit](http://learn.adafruit.com/basic-resistor-sensor-reading-on-raspberry-pi/overview) website; it makes for a great educational set up as well.
-
-**Note:** I have had no problem running this circuit over 10 metres of cheap but reliable 4-core telephone cable. Your mileage may vary, though I am aware of someone else having experimented with 30 metres of cat5 cable without encountering any problems.
+This project uses the LDR as one half of a voltage divider to trigger a transistor which is connected to a GPIO pin on the Pi.
+The circuit is documented here:
+http://electronics.stackexchange.com/questions/38258/plugging-a-ldr-into-gpio-pins-of-a-raspberry-pi
+I also use a 1k resistor on the output as described here: http://pyevolve.sourceforge.net/wordpress/?p=2383
+I used a 2k2 potentiometer in place of the 1k resistor between base and ground to provide some sensitivity adjustment but I've not had to adjust it.
 
 # Software Installation
 On your Raspberry Pi, you will need to ensure that you have certain Python related files installed. To make sure, type the following commands...
+
 ```bash
-sudo apt-get install sqlite3 libsqlite3-dev
 sudo apt-get install python-dev python-pip
-sudo pip install rpi.gpio
+sudo pip install apscheduler
 ```
 
-The above installs SQLite3 and the necessary files for Python to interact with the Raspberry Pi GPIO pins. Now you will want to download the files from this github repository. To do so, type the following commands...
+The above installs the advanced python scheduler used by the code.
+Now you will want to download the files from this github repository. To do so, type the following commands...
+
 ```bash
 sudo apt-get install git
-git clone https://github.com/yfory/power.git && cd power
+git clone https://github.com/kieranc/power.git && cd power
 ```
 
 The file named power-monitor is used to automatically start the data logging process on boot and stop on shutdown. For testing purposes, you do not need this script. However, you should make use of it if you are setting up a more permanent solution.
+
 ```bash
 sudo cp power-monitor /etc/init.d/
 sudo chmod a+x /etc/init.d/power-monitor
 sudo update-rc.d power-monitor defaults
 ```
-**Note:** Be sure to check the power-monitor file to make sure that the path to the Python application, power.py, matches with the path on your system. For example, /home/pi/power/power.py
 
-Next, move your database file to a more suitable location...
+**Note:** Be sure to check the power-monitor file to make sure that the path to the Python application, monitor.py, matches with the path on your system. For example, /home/pi/power/power.py
+
+Due to Python's inability to respond to an interrupt, I've used a very simple C app to listen for an interrupt triggered when the LDR detects a pulse. Monitor.py counts these pulses and each minute, creates a power reading in watts which it sends to EmonCMS' API.
+I'm not much of a coder so a lot of the code is borrowed from other people, I've included all sources as far as I'm aware.
+The C app came from Radek "Mrkva" Pilar on the raspberrypi.org forums: http://www.raspberrypi.org/phpBB3/viewtopic.php?f=44&t=7509
+This app will need compiling like so:
+
 ```bash
-sudo mkdir /var/db
-sudo cp power.db /var/db/
+gcc gpio-irq-demo.c -o gpio-irq
 ```
 
-A final sanity check; on my set up, 90000 seemed a reasonable number to use for pulse checking. You may need to modify the power.py file to change this number for your system. It is all dependent on how well you black-taped the photoresistor, how much cable you are using, etc. *Hint: add a __print__ command to the Python code near __while True:__ to check the values.*
+Put it somewhere accessible - I used /usr/local/bin, this will need modifying at the bottom of monitor.py if you put it somewhere else.
 
-Once you have your number in place, you can start the data logging process...
+Once all this is done you can start the data logging process...
+
 ```bash
 sudo /etc/init.d/power-monitor start
 ```
 
-# Setting up a Web Interface
-If you already have a web server running on your Raspberry Pi, with PHP enabled, simply copy the contents of the www directory to the relevant location on your Raspberry Pi.
+This script is configure only to submit its output to the EmonCMS API.
+You can read how to set up EmonCMS on the Pi here: http://openenergymonitor.org/emon/emoncms/installing-ubuntu-debian-pi
+Once you have set up EmonCMS you will need to get your API key and put it in monitor.py, line 69.
+After that you'll need to tell EmonCMS what to do with the data - I'm not entirely clear on this bit myself yet but if you set it 
+just to log to feed you can see easily if it's receiving data. Alternatively, check the web server access logs for API requests
+which should happen every minute.
 
-To set up a simple web webserver with PHP, type the following commands:
-```bash
-sudo apt-get install lighttpd
-sudo apt-get install php5-cgi
-sudo lighty-enable-mod fastcgi
-sudo lighty-enable-mod fastcgi-php
-sudo service lighttpd force-reload
-```
-
-Now you can copy the PHP file to /var/www, e.g. _cp -r www/* /var/www/_
-
-Finally, edit the *config.php* file located in */var/www* and set the IMPKWH value to match your system (the default is 800).
-
-To view your electricity consumption, open a web browser on your desktop computer and navigate to your Raspberry Pi, for example by typing: _http://192.168.0.3/_
 
 # License
 
