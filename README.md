@@ -6,8 +6,9 @@ Power meter monitoring directly on the Pi using Open Energy Monitor and an LDR
 I've forked this from yfory's power meter: https://github.com/yfory/power
 
 His uses a capacitor/resistor for the LDR, I use a transistor based circuit instead to provide a digital on/off signal
+His version also writes values to an SQLite database and graphs them itself, this does not.
 
-His version also writes values to an SQLite database and graphs them itself, this does not, if these features are useful to you, I suggest you check his code.
+If these features are useful to you, I suggest you check his code.
 
 # Requirements
 * Raspberry Pi
