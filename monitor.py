@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 """
+	Modified by KieranC to submit pulse count to Open Energy Monitor EmonCMS API
+
 	Power Monitor
 	Logs power consumption to an SQLite database, based on the number
 	of pulses of a light on an electricity meter.
@@ -26,46 +28,47 @@
 	SOFTWARE.
 """
 
-import RPi.GPIO as GPIO, sqlite3 as sqlite, time, os
+import time, os, subprocess, httplib, datetime
+from apscheduler.scheduler import Scheduler
 
-GPIO.setmode(GPIO.BCM)
-currentR=0
-dbconn=None
-pulsedb="/var/db/power.db"
+# The next 2 lines enable logging for the scheduler. Uncomment for debugging.
+#import logging
+#logging.basicConfig()
 
-def GetResistance(GPIOPin):
-	resistance=0
-	GPIO.setup(GPIOPin, GPIO.OUT)
-	GPIO.output(GPIOPin, GPIO.LOW)
-	time.sleep(0.1)
+pulsecount=0
+power=0
 
-	GPIO.setup(GPIOPin, GPIO.IN)
-	while(GPIO.input(GPIOPin)==GPIO.LOW):
-		resistance+=1
-	return resistance
+# Start the scheduler
+sched = Scheduler()
+sched.start()
 
 
-def InsertPulse():
-	try:
-		dbconn=sqlite.connect(pulsedb)
-		dbdata=dbconn.cursor()
-		dbdata.execute("insert into pulse values(strftime('%s','now'))")
-		dbconn.commit()
-	except sqlite.Error,e:
-		print e
-		if dbconn:
-			dbconn.rollback()
-	finally:
-		if dbconn:
-			dbconn.close()
+# This function monitors the output from gpio-irq C app
+# Code from vartec @ http://stackoverflow.com/questions/4760215/running-shell-command-from-python-and-capturing-the-output
+def runProcess(exe):
+    p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while(True):
+      retcode = p.poll() #returns None while subprocess is running
+      line = p.stdout.readline()
+      yield line
+      if(retcode is not None):
+        break
 
 
-while True:
-	previousR=currentR
-	currentR=GetResistance(4)
+# Every minute this function converts the number of pulses over the last minute into a power value and sends it to EmonCMS
+@sched.interval_schedule(minutes=1)
+def SendPulses():
+	global pulsecount
+	global power
+#	print ("Pulses: %i") % pulsecount # Uncomment for debugging.
+	power = pulsecount * 60
+#	print ("Power: %iW") % power # Uncomment for debugging.
+	pulsecount = 0;
+	timenow = time.strftime('%s')
+        url = ("/emoncms/input/post?time=%s&node=1&json={power:%i}&apikey=a5b9dc7a67a68b83a63f896f919f3263") % (timenow, power)
+        connection = httplib.HTTPConnection("localhost")
+        connection.request("GET", url)
 
 
-	if currentR<90000:
-		if previousR>=90000:
-			InsertPulse()
-
+for line in runProcess(["/usr/local/bin/gpio-irq", "7"]):
+    pulsecount += 1
