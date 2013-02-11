@@ -4,7 +4,8 @@
 case "$1" in
 	start)
 		echo "Starting power monitor..."
-		gpio edge 7 falling
+		echo 7 > /sys/class/gpio/export
+		echo falling > /sys/class/gpio/gpio7/edge
 		python /root/power/monitor.py &
 		;;
 	stop)
