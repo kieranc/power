@@ -1,4 +1,4 @@
-// Borrowed from Mrkva @ http://www.raspberrypi.org/phpBB3/viewtopic.php?f=44&t=7509
+// Borrowed from Radek "Mrkva" Pilar @ http://www.raspberrypi.org/phpBB3/viewtopic.php?f=44&t=7509
 // Modified to only print 'interrupt' as output, increase timeout to 10 minutes and not buffer the output.
 // Compile with gcc gpio-irq-demo.c -o gpio-irq
 #include <stdio.h>
