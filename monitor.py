@@ -61,6 +61,7 @@ def SendPulses():
 	global pulsecount
 	global power
 #	print ("Pulses: %i") % pulsecount # Uncomment for debugging.
+	# The next line calculates a power value in watts from the number of pulses, my meter is 1000 pulses per kWh, you'll need to modify this if yours is different.
 	power = pulsecount * 60
 #	print ("Power: %iW") % power # Uncomment for debugging.
 	pulsecount = 0;
