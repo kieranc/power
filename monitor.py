@@ -65,7 +65,7 @@ def SendPulses():
 #	print ("Power: %iW") % power # Uncomment for debugging.
 	pulsecount = 0;
 	timenow = time.strftime('%s')
-        url = ("/emoncms/input/post?time=%s&node=1&json={power:%i}&apikey=a5b9dc7a67a68b83a63f896f919f3263") % (timenow, power)
+        url = ("/emoncms/input/post?time=%s&node=1&json={power:%i}&apikey=<insert API key here>") % (timenow, power) # You'll need to put in your API key here from EmonCMS
         connection = httplib.HTTPConnection("localhost")
         connection.request("GET", url)
 
