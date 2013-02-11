@@ -20,19 +20,13 @@ His version also writes values to an SQLite database and graphs them itself, thi
 
 Modern electricity meters have a blinking/flashing LED, often with small text that reads 1000 Imp/kWh. The two important things here are that you have a blinking LED, and that you know the number e.g. 800. Without these, this project will not work for you.
 
-Yfory's original had a simple variable to change for the Imp/kWh value, mine, not so much.
-
-I multiply the pulsecount per minute by 60 to get a value in watts which works for 1000 Imp/kWh but will need adjusting for others.
-
-I think it should be 72 for 800 Imp/kWh and 30 for 2000 Imp/kWh
+This code is set up for 1000 Imp/kWh, the value of 60 on line 65 sets this. 72 should work for 800 Imp/kWh or 30 for 2000 Imp/kWh.
 
 This project uses the LDR as one half of a voltage divider to trigger a transistor which is connected to a GPIO pin on the Pi.
 
-The circuit is documented here: http://electronics.stackexchange.com/questions/38258/plugging-a-ldr-into-gpio-pins-of-a-raspberry-pi
+The circuit is documented here: http://pyevolve.sourceforge.net/wordpress/?p=2383
 
-I also use a 1k resistor on the output as described here: http://pyevolve.sourceforge.net/wordpress/?p=2383
-
-I used a 2k2 potentiometer in place of the 1k resistor between base and ground to provide some sensitivity adjustment but I've not had to adjust it.
+I used a 1k resistor between base and ground to make it more sensitive and later a 2k2 potentiometer in its place to provide some adjustment but I've not had to adjust it. 1k should be fine.
 
 # Software Installation
 On your Raspberry Pi, you will need to ensure that you have certain Python related files installed. To make sure, type the following commands...
