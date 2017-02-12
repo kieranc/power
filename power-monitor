@@ -4,14 +4,13 @@
 case "$1" in
 	start)
 		echo "Starting power monitor..."
-		echo 7 > /sys/class/gpio/export
-		echo falling > /sys/class/gpio/gpio7/edge
+		gpio edge 1 falling
 		python /root/power/monitor.py &
 		;;
 	stop)
 		echo "Stopping power monitor..."
 		kill `ps -ef | grep monitor.py | grep -v grep | awk '{print $2}'`
-		killall gpio-irq
+		killall gpio-new
 		;;
 	*)
 		echo "Usage: /etc/init.d/power-monitor (start|stop)"
