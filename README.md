@@ -56,12 +56,11 @@ sudo update-rc.d power-monitor defaults
 **Note:** Be sure to check the power-monitor file to make sure that the path to the Python application, monitor.py, matches with the path on your system. For example, /home/pi/power/power.py
 
 Due to Python's inability to respond to an interrupt, I've used a very simple C app to listen for an interrupt triggered when the LDR detects a pulse. Monitor.py counts these pulses and each minute, creates a power reading in watts which it sends to EmonCMS' API.
-I'm not much of a coder so a lot of the code is borrowed from other people, I've included all sources as far as I'm aware.
-The C app came from Radek "Mrkva" Pilar on the raspberrypi.org forums: http://www.raspberrypi.org/phpBB3/viewtopic.php?f=44&t=7509
+This file was adapted and simplified from the example isr.c distributed with wiringPi by Gordon Henderson
 This app will need compiling like so:
 
 ```bash
-gcc gpio-irq-demo.c -o gpio-irq
+gcc gpio-new.c -o gpio-new -lwiringPi
 ```
 
 Put it somewhere accessible - I used /usr/local/bin, this will need modifying at the bottom of monitor.py if you put it somewhere else.
